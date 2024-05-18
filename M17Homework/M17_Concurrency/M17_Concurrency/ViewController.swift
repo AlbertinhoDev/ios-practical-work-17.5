@@ -5,13 +5,11 @@ class ViewController: UIViewController {
     
     let service = Service()
     
-    private var images: [UIImage] = []
-    
-    private lazy var imageView: UIImageView = {
-        let view = UIImageView()
-        view.contentMode = .scaleAspectFit
-        return view
-    }()
+//    private lazy var imageView: UIImageView = {
+//        let view = UIImageView()
+//        view.contentMode = .scaleAspectFit
+//        return view
+//    }()
     
     private lazy var stackView: UIStackView = {
         let view = UIStackView()
@@ -48,19 +46,16 @@ class ViewController: UIViewController {
     private func onLoad() {
         let dispatchGroup = DispatchGroup()
         
+        var images: [UIImage] = []
+        
         for _ in 0...4 {
             dispatchGroup.enter()
-            
-            DispatchQueue.global().async {
-                self.service.getImageURL { urlString, error in
-                    guard let urlString = urlString else { return }
+            self.service.getImageURL { urlString, error in
+                guard let urlString = urlString else { return }
                     
-                    let image = self.service.loadImage(urlString: urlString)
+                let image = self.service.loadImage(urlString: urlString)
 
-                    if let image = image {
-                        self.images.append(image)
-                    }
-                }
+                if let image = image {images.append(image)}
                 dispatchGroup.leave()
             }
         }
@@ -68,9 +63,12 @@ class ViewController: UIViewController {
         dispatchGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else {return}
             self.activityIndicator.stopAnimating()
+            print(images)
             for i in 0...4 {
-                self.imageView.image = self.images[i]
-                self.stackView.addArrangedSubview(self.imageView)
+                let view = UIImageView(image: images[i])
+                view.contentMode = .scaleAspectFit
+                //self.imageView.image = images[i]
+                self.stackView.addArrangedSubview(view)
             }
         }
         
